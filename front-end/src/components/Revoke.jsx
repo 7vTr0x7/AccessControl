@@ -1,20 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 
 import "./Revoke.css"
 
-const Revoke = ({state,currentAccount}) => {
+const Revoke = ({state}) => {
     const revoke = async (event) => {
         event.preventDefault();
         const { contract } = state;
         const user = document.querySelector("#user").value;
-        if (user === currentAccount) {
           const recipient = document.querySelector("#recipient").value;
           const revoke = await contract.revoke_consent(user, recipient);
           await revoke.wait();
           console.log("access revoked");
-        } else {
-          alert("not owner");
-        }
+       
       };
   return (
     <>
