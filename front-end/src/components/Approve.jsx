@@ -26,14 +26,13 @@ const Approve = ({ state, currentAccount }) => {
     if (user === currentAccount) {
       message = document.querySelector("#message").value;
 
+ 
+
       const recipient = document.querySelector("#recipient").value;
       console.log(user, message, recipient);
       const approve = await contract.give_consent(user, recipient, message);
       await approve.wait();
       console.log("approve is done");
-
-      
-
     } else {
       alert("not owner");
     }
