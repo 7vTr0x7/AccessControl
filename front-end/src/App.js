@@ -1,23 +1,89 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState, useEffect } from "react";
+import { ethers } from "ethers";
+
+import { Revoke, Approve, CheckConsent, GetData } from "./components/index";
+import accessABI from "./utils/Access.json";
+import "./App.css";
 
 function App() {
+  const [state, setState] = useState({
+    provider: null,
+    signer: null,
+    contract: null,
+  });
+
+  const [currentAccount, setCurrentAccount] = useState("");
+  const [account, setAccount] = useState("None");
+  const [signerAccount, setSignerAccount] = useState("None");
+
+  const connectWallet = async () => {
+    const contractAddress = "0xc213Ad1B0A48f9624E0dF70E794Fdfa7DF0D2d6A";
+    const contractABI = accessABI.abi;
+    try {
+      const { ethereum } = window;
+
+      if (ethereum) {
+        const account = await ethereum.request({
+          method: "eth_requestAccounts",
+        });
+
+        setCurrentAccount(account[0]);
+
+        ethereum.on("chainChanged", () => {
+          window.location.reload();
+        });
+
+        ethereum.on("accountsChanged", () => {
+          window.location.reload();
+        });
+
+        const provider = new ethers.providers.Web3Provider(ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          contractAddress,
+          contractABI,
+          signer
+        );
+        setAccount(account);
+        setState({ provider, signer, contract });
+
+        const signerAddr = await signer.getAddress();
+
+        setSignerAccount(signerAddr);
+      } else {
+        alert("Please install metamask");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    connectWallet();
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      {currentAccount === "" ? (
+        <button className="connect" onClick={connectWallet}>
+          Connect Wallet
+        </button>
+      ) : (
+        <div style={{ height: "200%" }}>
+          <p
+            className="text-muted lead "
+            style={{ marginTop: "10px", marginLeft: "5px" }}
+          >
+            <small className="acc">Connected Account : {account}</small>
+          </p>
+          <div className="container">
+            <Approve state={state} currentAccount={currentAccount} signerAccount = {signerAccount}/>
+            <CheckConsent state={state} />
+            <Revoke state={state} currentAccount={currentAccount} />
+            <GetData state={state} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
